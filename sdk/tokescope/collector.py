@@ -1,6 +1,7 @@
 import requests
 from typing import List, Optional
 from .queue import enqueue, start_worker
+from .queue import flush as flush_queue
 
 _api_key: Optional[str] = None
 _endpoint = "http://localhost:8000/ingest"
@@ -46,3 +47,7 @@ def send_batch(batch: List[dict]):
 
 def get_config():
     return {"capture_content": _capture_content, "debug": _debug, "app_id": _app_id}
+
+
+def flush():
+    flush_queue()

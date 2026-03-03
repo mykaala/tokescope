@@ -1,6 +1,5 @@
 from openai import OpenAI
 import tokescope
-import time
 
 tokescope.init(
     api_key="test",
@@ -18,4 +17,4 @@ resp = client.chat.completions.create(
 )
 
 print(resp.choices[0].message.content)
-time.sleep(2)
+tokescope.flush()

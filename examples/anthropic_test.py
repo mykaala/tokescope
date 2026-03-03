@@ -1,6 +1,5 @@
 from anthropic import Anthropic
 import os
-import time
 import tokescope
 
 tokescope.init(
@@ -28,4 +27,4 @@ resp = client.messages.create(
 )
 
 print(resp.content)
-time.sleep(2)
+tokescope.flush()

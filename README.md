@@ -1,6 +1,6 @@
 # TokeScope
 
-TokeScope is a lightweight LLM observability tool.
+TokeScope is a lightweight, self-hosted LLM observability platform.
 
 It instruments LLM API calls and tracks:
 
@@ -9,6 +9,7 @@ It instruments LLM API calls and tracks:
 - Latency
 - Model usage
 - Errors
+- Provider-level breakdowns
 
 Built as a minimal, infrastructure-focused alternative to LangSmith / Helicone.
 
@@ -16,14 +17,16 @@ Built as a minimal, infrastructure-focused alternative to LangSmith / Helicone.
 
 ## Dashboard
 
-![TokeScope Dashboard](./assets/dashboard.jpg)
+<p align="center">
+  <img src="./assets/TokeScope.jpg" width="850">
+</p>
 
 ---
 
 ## Architecture
 
 User App  
-→ TokeScope SDK (async batching)  
+→ TokeScope SDK (async batching + provider patchers)  
 → FastAPI ingest service  
 → PostgreSQL  
 → React dashboard
@@ -32,38 +35,74 @@ User App
 
 ## Quickstart (Local)
 
-Start backend:
+### 1. Start Backend
 
 ```bash
 docker compose up -d
 python -m uvicorn backend.main:app --reload --port 8000
 ```
 
-## Start Dashboard
-```
+### 2. Start Dashboard
+
+```bash
 cd dashboard
 npm install
 npm run dev
 ```
-## Example App
+
+Visit:
+
 ```
+http://localhost:5173
+```
+
+---
+
+## Instrument an App
+
+```python
 import tokescope
+from openai import OpenAI
 
 tokescope.init(api_key="test")
 
-from openai import OpenAI
 client = OpenAI()
 
 client.chat.completions.create(
     model="gpt-4o-mini",
     messages=[{"role": "user", "content": "Hello"}]
 )
+
+# Optional: force flush for short scripts
+tokescope.flush()
 ```
-Visit: `http://localhost:5173`
+
+---
 
 ## Key Design Decisions
-- Async, non-blocking telemetry
-- Privacy-first default (`capture_content=False`)
-- Workspace isolation via API key
-- Backend-generated request IDs
-- Persistent aggregation with PostgreSQL
+
+- **Async, non-blocking telemetry** via background batching worker
+- **Provider patchers** for OpenAI, Anthropic, Ollama
+- **Privacy-first default** (`capture_content=False`)
+- **Workspace isolation** via API key
+- **Backend-generated request IDs**
+- **Persistent aggregation** with PostgreSQL
+- **Explicit `flush()` API** for deterministic telemetry delivery
+
+---
+
+## Why This Exists
+
+Modern teams need observability for LLM workloads — especially when running local or open-source models.
+
+TokeScope focuses on:
+
+- Self-hosted deployment
+- Minimal dependencies
+- Cost transparency
+- Clear infrastructure boundaries
+- Extensible provider instrumentation
+
+---
+
+MIT License
