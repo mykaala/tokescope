@@ -1,17 +1,16 @@
 # TokeScope
 
-TokeScope is a lightweight, self-hosted LLM observability platform.
+Stop burning money on LLM APIs without knowing why.
 
-It instruments LLM API calls and tracks:
+TokeScope is a self-hosted dashboard that tracks your OpenAI/Anthropic/Ollama usage in real-time:
 
-- Token usage
-- Cost (USD)
-- Latency
-- Model usage
-- Errors
-- Provider-level breakdowns
+- 💸 How much you're spending (and on what)
+- ⚡️ Response times
+- 🔥 Models that eat your budget
+- 💀 Errors and failed calls
+- 📊 Provider breakdowns
 
-Built as a minimal, infrastructure-focused alternative to LangSmith / Helicone.
+Think LangSmith or Helicone, but you own the data and it takes 2 minutes to set up.
 
 ---
 
@@ -23,26 +22,28 @@ Built as a minimal, infrastructure-focused alternative to LangSmith / Helicone.
 
 ---
 
-## Architecture
+## How It Works
 
-User App  
-→ TokeScope SDK (async batching + provider patchers)  
-→ FastAPI ingest service  
+Your App  
+→ TokeScope SDK (wraps your API calls)  
+→ FastAPI backend  
 → PostgreSQL  
 → React dashboard
 
+Everything runs locally. No data leaves your machine.
+
 ---
 
-## Quickstart (Local)
+## Quick Start
 
-### 1. Start Backend
+### 1. Fire up the backend
 
 ```bash
 docker compose up -d
 python -m uvicorn backend.main:app --reload --port 8000
 ```
 
-### 2. Start Dashboard
+### 2. Start the dashboard
 
 ```bash
 cd dashboard
@@ -50,21 +51,19 @@ npm install
 npm run dev
 ```
 
-Visit:
-
-```
-http://localhost:5173
-```
+Open `http://localhost:5173` and you're done.
 
 ---
 
-## Instrument an App
+## Add to Your Project
+
+Roughly:
 
 ```python
 import tokescope
 from openai import OpenAI
 
-tokescope.init(api_key="test")
+tokescope.init(api_key="test")  # any string works locally
 
 client = OpenAI()
 
@@ -73,35 +72,40 @@ client.chat.completions.create(
     messages=[{"role": "user", "content": "Hello"}]
 )
 
-# Optional: force flush for short scripts
+# For scripts that exit immediately:
 tokescope.flush()
 ```
 
----
-
-## Key Design Decisions
-
-- **Async, non-blocking telemetry** via background batching worker
-- **Provider patchers** for OpenAI, Anthropic, Ollama
-- **Privacy-first default** (`capture_content=False`)
-- **Workspace isolation** via API key
-- **Backend-generated request IDs**
-- **Persistent aggregation** with PostgreSQL
-- **Explicit `flush()` API** for deterministic telemetry delivery
+That's all! Every API call from the supported providers now shows up in your dashboard.
 
 ---
 
-## Why This Exists
+## Why I Built This
 
-Modern teams need observability for LLM workloads — especially when running local or open-source models.
+At hackathons and projects, I kept:
 
-TokeScope focuses on:
+- accidentally spending $50 on a buggy loop
+- not knowing which model was faster/cheaper
+- wishing I had LangSmith but not wanting to pay the price
 
-- Self-hosted deployment
-- Minimal dependencies
-- Cost transparency
-- Clear infrastructure boundaries
-- Extensible provider instrumentation
+So I built this in a weekend. It's:
+
+- ✅ Free and open source
+- ✅ Self-hosted (your API keys stay local)
+- ✅ Works with OpenAI, Anthropic, Ollama (and more coming)
+- ✅ Async (doesn't slow down your app)
+- ✅ Privacy-first (doesn't log prompts by default)
+
+---
+
+## Tech Stack
+
+- **SDK**: Python with async batching
+- **Backend**: FastAPI + PostgreSQL
+- **Dashboard**: React + Recharts
+- **Deployment**: Docker Compose
+
+No vendor commitment. No telemetry. Just a tool that does one thing well.
 
 ---
 

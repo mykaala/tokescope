@@ -7,8 +7,6 @@ from typing import Callable, Optional, List
 _log_queue: "queue.Queue[dict]" = queue.Queue()
 _worker_started = False
 _sender: Optional[Callable[[List[dict]], None]] = None
-
-# holds the currently buffered batch inside the worker
 _buffer: List[dict] = []
 _buffer_lock = threading.Lock()
 
@@ -31,7 +29,6 @@ def start_worker(sender: Callable[[List[dict]], None], flush_interval_s: float =
                 with _buffer_lock:
                     _buffer.append(item)
 
-                # flush on size
                 with _buffer_lock:
                     should_flush = len(_buffer) >= max_batch
                 if should_flush:
@@ -39,12 +36,10 @@ def start_worker(sender: Callable[[List[dict]], None], flush_interval_s: float =
                     last_flush = time.time()
 
             except queue.Empty:
-                # flush on timer
                 flush()
                 last_flush = time.time()
 
     def _atexit_flush():
-        # best-effort final flush on program exit
         try:
             flush()
         except Exception:
@@ -79,5 +74,4 @@ def flush() -> None:
     try:
         _sender(batch)
     except Exception:
-        # never crash user's app
         pass
