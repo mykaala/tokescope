@@ -9,7 +9,8 @@ _debug = False
 _app_id = None
 
 
-def init(api_key: str, endpoint: str = None, capture_content: bool = False, debug: bool = False, app_id: str = None):
+def init(api_key: str, endpoint: str = None, capture_content: bool = False, debug: bool = False, app_id: str = None,
+         providers: list[str] | None = None):
     global _api_key, _endpoint, _capture_content, _debug, _app_id
     _api_key = api_key
     if endpoint:
@@ -19,9 +20,11 @@ def init(api_key: str, endpoint: str = None, capture_content: bool = False, debu
     _app_id = app_id
     start_worker(sender=send_batch)
 
-    # Start worker and pass the sender function (no circular imports)
-
-    start_worker(sender=send_batch)
+    from .providers import get_patchers
+    wanted = set(providers or ["openai"])
+    for p in get_patchers():
+        if p.name in wanted:
+            p.patch()
 
 
 def enqueue_log(log: dict):

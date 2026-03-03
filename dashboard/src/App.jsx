@@ -86,6 +86,31 @@ export default function App() {
 				<MetricCard title='Avg Latency' value={formatMs(summary?.avg_latency_ms ?? 0)} />
 			</div>
 
+			{/* Cost by Provider */}
+			<div className='card'>
+				<div className='cardTitle'>Cost by Provider</div>
+				<div className='tableWrap'>
+					<table className='table'>
+						<thead>
+							<tr>
+								<Th>Provider</Th>
+								<Th>Calls</Th>
+								<Th>Cost</Th>
+							</tr>
+						</thead>
+						<tbody>
+							{(summary?.by_provider || []).map((p, idx) => (
+								<tr key={idx} className='row'>
+									<Td>{p.provider}</Td>
+									<Td>{p.calls}</Td>
+									<Td>{formatUsd(p.cost_usd)}</Td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</div>
+			</div>
+
 			<div className='grid'>
 				<div className='card'>
 					<div className='cardTitle'>Cost (last 100 calls)</div>
@@ -109,9 +134,11 @@ export default function App() {
 							<thead>
 								<tr>
 									<Th>Time</Th>
+									<Th>Provider</Th>
 									<Th>Model</Th>
 									<Th>Cost</Th>
 									<Th>Latency</Th>
+									<Th>Status</Th>
 								</tr>
 							</thead>
 							<tbody>
@@ -120,9 +147,11 @@ export default function App() {
 									return (
 										<tr key={idx} className={isSelected ? 'row selected' : 'row'} onClick={() => setSelected(c)}>
 											<Td>{new Date(c.created_at).toLocaleTimeString()}</Td>
+											<Td>{c.provider}</Td>
 											<Td>{c.model}</Td>
 											<Td>{formatUsd(c.cost_usd)}</Td>
 											<Td>{formatMs(c.latency_ms)}</Td>
+											<Td>{c.status || 'ok'}</Td>
 										</tr>
 									);
 								})}

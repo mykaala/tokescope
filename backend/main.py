@@ -130,6 +130,14 @@ def summary(
         .all()
     )
 
+    by_provider = (
+        db.query(LLMCall.provider, func.count(
+            LLMCall.id), func.sum(LLMCall.cost_usd))
+        .filter(LLMCall.workspace_key == x_api_key)
+        .group_by(LLMCall.provider)
+        .all()
+    )
+
     return {
         "total_calls": total_calls,
         "total_cost_usd": round(float(total_cost), 6),
@@ -138,6 +146,11 @@ def summary(
             {"model": m, "calls": int(
                 c), "cost_usd": round(float(s or 0.0), 6)}
             for (m, c, s) in by_model
+        ],
+        "by_provider": [
+            {"provider": p, "calls": int(
+                c), "cost_usd": round(float(s or 0.0), 6)}
+            for (p, c, s) in by_provider
         ],
     }
 
@@ -161,13 +174,16 @@ def recent_calls(
 
     return [
         {
-            "model": c.model,
+            "created_at": c.created_at.isoformat(),
             "provider": c.provider,
+            "endpoint_type": c.endpoint_type,
+            "model": c.model,
+            "status": c.status,
+            "error_type": c.error_type,
             "prompt_tokens": c.prompt_tokens,
             "completion_tokens": c.completion_tokens,
             "latency_ms": c.latency_ms,
             "cost_usd": round(c.cost_usd, 6),
-            "created_at": c.created_at.isoformat(),
         }
         for c in calls
     ]
